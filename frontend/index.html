@@ -1,54 +1,65 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Zoom Auto Join</title>
-    <meta charset="utf-8" />
-    <script src="https://source.zoom.us/2.17.0/lib/vendor/react.min.js"></script>
-    <script src="https://source.zoom.us/2.17.0/lib/vendor/react-dom.min.js"></script>
-    <script src="https://source.zoom.us/2.17.0/lib/vendor/redux.min.js"></script>
-    <script src="https://source.zoom.us/2.17.0/lib/vendor/redux-thunk.min.js"></script>
-    <script src="https://source.zoom.us/2.17.0/lib/vendor/jquery.min.js"></script>
-    <script src="https://source.zoom.us/zoom-meeting-2.17.0.min.js"></script>
-  </head>
-  <body>
-    <h2>Auto Joining Zoom Meeting...</h2>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zoom Auto Join</title>
 
-    <script>
-      // Meeting Info
-      var meetConfig = {
-        apiKey: "RkocqUjSRhGLyDTbxwu0bQ", // তোমার Client ID
-        meetingNumber: "83620207149", 
-        userName: "Auto User",
-        passWord: "Bdm2Hm",
-        leaveUrl: "https://zoom.us",
-        role: 0 // 0 = attendee, 1 = host
-      };
+  <!-- Zoom Web SDK -->
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/react.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/react-dom.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/redux.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/redux-thunk.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/lodash.min.js"></script>
+  <script src="https://source.zoom.us/zoom-meeting-2.17.0.min.js"></script>
+</head>
+<body>
+  <h2>Auto Joining Zoom Meeting...</h2>
 
-      // Signature Render server থেকে আনছে
-      fetch("https://zoomwebsdkapp-qon0.onrender.com", {
-        method: "POST",
-        body: JSON.stringify({
-          meetingNumber: meetConfig.meetingNumber,
-          role: meetConfig.role
-        }),
-        headers: { "Content-Type": "application/json" }
-      })
-        .then((res) => res.json())
-        .then((response) => {
-          ZoomMtg.init({
-            leaveUrl: meetConfig.leaveUrl,
-            isSupportAV: true,
-            success: function () {
-              ZoomMtg.join({
-                signature: response.signature,
-                sdkKey: meetConfig.apiKey,
-                meetingNumber: meetConfig.meetingNumber,
-                userName: meetConfig.userName,
-                passWord: meetConfig.passWord,
-              });
-            },
-          });
+  <script>
+    // Meeting Info
+    var meetConfig = {
+      apiKey: "RkocqUjSRhGLyDTbxwu0bQ", // তোমার Client ID
+      meetingNumber: "83620207149",
+      userName: "Auto User",
+      passWord: "Bdm2Hm",
+      leaveUrl: "https://zoom.us",
+      role: 0 // 0 = attendee, 1 = host
+    };
+
+    // Signature Render server থেকে আনবে
+    fetch("https://zoomwebsdkapp-qon0.onrender.com/signature", {
+      method: "POST",
+      body: JSON.stringify({
+        meetingNumber: meetConfig.meetingNumber,
+        role: meetConfig.role
+      }),
+      headers: { "Content-Type": "application/json" }
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        ZoomMtg.init({
+          leaveUrl: meetConfig.leaveUrl,
+          success: () => {
+            ZoomMtg.join({
+              signature: response.signature,
+              sdkKey: meetConfig.apiKey,
+              meetingNumber: meetConfig.meetingNumber,
+              userName: meetConfig.userName,
+              passWord: meetConfig.passWord,
+              success: () => {
+                console.log("Join meeting success");
+              },
+              error: (err) => {
+                console.error(err);
+              }
+            });
+          },
+          error: (err) => {
+            console.error(err);
+          }
         });
-    </script>
-  </body>
+      });
+  </script>
+</body>
 </html>
