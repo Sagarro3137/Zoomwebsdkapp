@@ -14,9 +14,9 @@
     <h2>Auto Joining Zoom Meeting...</h2>
 
     <script>
-      // তোমার Meeting Info
+      // Meeting Info
       var meetConfig = {
-        apiKey: "YOUR_CLIENT_ID", // Zoom App এর Client ID বসাও
+        apiKey: "RkocqUjSRhGLyDTbxwu0bQ", // তোমার Client ID
         meetingNumber: "83620207149", 
         userName: "Auto User",
         passWord: "Bdm2Hm",
@@ -24,7 +24,7 @@
         role: 0 // 0 = attendee, 1 = host
       };
 
-      // Signature Backend থেকে আনতে হবে
+      // Signature Render server থেকে আনছে
       fetch("https://zoomwebsdkapp-qon0.onrender.com", {
         method: "POST",
         body: JSON.stringify({
