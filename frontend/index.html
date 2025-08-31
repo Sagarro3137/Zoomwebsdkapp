@@ -1,59 +1,66 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zoom Auto Join</title>
-  <script src="https://source.zoom.us/2.18.2/lib/vendor/react.min.js"></script>
-  <script src="https://source.zoom.us/2.18.2/lib/vendor/react-dom.min.js"></script>
-  <script src="https://source.zoom.us/2.18.2/lib/vendor/redux.min.js"></script>
-  <script src="https://source.zoom.us/2.18.2/lib/vendor/redux-thunk.min.js"></script>
-  <script src="https://source.zoom.us/2.18.2/lib/vendor/lodash.min.js"></script>
-  <script src="https://source.zoom.us/zoom-meeting-2.18.2.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/react.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/react-dom.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/redux.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/redux-thunk.min.js"></script>
+  <script src="https://source.zoom.us/2.17.0/lib/vendor/lodash.min.js"></script>
+  <script src="https://source.zoom.us/zoom-meeting-2.17.0.min.js"></script>
 </head>
 <body>
   <h2>Zoom Auto Join Meeting</h2>
-  <button onclick="startMeeting()">Join Now</button>
+  <div id="zmmtg-root"></div>
 
   <script>
-    ZoomMtg.setZoomJSLib('https://source.zoom.us/2.18.2/lib', '/av');
-    ZoomMtg.preLoadWasm();
-    ZoomMtg.prepareWebSDK();
-
-    const meetConfig = {
-      sdkKey: "RkocqUjSRhGLyDTbxwu0bQ",   // ✅ Client ID
-      meetingNumber: "YOUR_MEETING_ID",  // 👉 এখানে Meeting ID দাও
-      passWord: "YOUR_PASSWORD",         // 👉 Meeting Password দাও
-      userName: "Guest User",
-      leaveUrl: "https://zoom.us",
-      role: 0
+    // 👉 এখানে তোমার মিটিং ডিটেইলস বসাবে
+    const meetingConfig = {
+      sdkKey: "YOUR_SDK_KEY",
+      meetingNumber: "YOUR_MEETING_ID",
+      passWord: "YOUR_PASSWORD",
+      userName: "Auto User",
+      userEmail: "example@email.com", 
+      role: 0  // 0 = attendee, 1 = host
     };
 
-    async function startMeeting() {
-      const response = await fetch("https://zoomwebsdkapp-qon0.onrender.com/signature", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          meetingNumber: meetConfig.meetingNumber,
-          role: meetConfig.role
-        })
-      });
+    // 👉 Backend (Render server) থেকে Signature আনবে
+    async function getSignature() {
+      const res = await fetch("https://zoomwebsdkapp-qon0.onrender.com"); 
+      const data = await res.json();
+      return data.signature;
+    }
 
-      const data = await response.json();
+    // 👉 Zoom SDK Initialize + Join
+    async function joinMeeting() {
+      const signature = await getSignature();
+
+      ZoomMtg.setZoomJSLib('https://source.zoom.us/2.17.0/lib', '/av');
+      ZoomMtg.preLoadWasm();
+      ZoomMtg.prepareJssdk();
 
       ZoomMtg.init({
-        leaveUrl: meetConfig.leaveUrl,
+        leaveUrl: "https://zoom.us",
         success: () => {
           ZoomMtg.join({
-            sdkKey: meetConfig.sdkKey,
-            signature: data.signature,
-            meetingNumber: meetConfig.meetingNumber,
-            userName: meetConfig.userName,
-            passWord: meetConfig.passWord,
-            success: () => console.log("✅ Joined Meeting"),
+            signature: signature,
+            sdkKey: meetingConfig.sdkKey,
+            meetingNumber: meetingConfig.meetingNumber,
+            passWord: meetingConfig.passWord,
+            userName: meetingConfig.userName,
+            userEmail: meetingConfig.userEmail,
+            tk: "",
+            success: () => console.log("Joined Meeting ✅"),
             error: (err) => console.error(err)
           });
-        }
+        },
+        error: (err) => console.error(err)
       });
     }
+
+    joinMeeting();
   </script>
 </body>
 </html>
