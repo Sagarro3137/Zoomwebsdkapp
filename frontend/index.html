@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="utf-8" />
   <title>Zoom Auto Join</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Zoom Web SDK -->
+  <!-- Zoom Web SDK CSS -->
+  <link type="text/css" rel="stylesheet" href="https://source.zoom.us/2.17.0/css/bootstrap.css" />
+  <link type="text/css" rel="stylesheet" href="https://source.zoom.us/2.17.0/css/react-select.css" />
+
+  <!-- Zoom Web SDK JS -->
   <script src="https://source.zoom.us/2.17.0/lib/vendor/react.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/react-dom.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/redux.min.js"></script>
@@ -14,7 +18,7 @@
   <script src="https://source.zoom.us/zoom-meeting-2.17.0.min.js"></script>
 </head>
 <body>
-  <h2>Auto Joining Zoom Meeting...</h2>
+  <h2 style="text-align:center; margin-top:50px;">Auto Joining Zoom Meeting...</h2>
 
   <script>
     // Meeting Info
@@ -24,10 +28,15 @@
       userName: "Auto User",
       passWord: "Bdm2Hm",
       leaveUrl: "https://zoom.us",
-      role: 0 // 0 = attendee, 1 = host
+      role: 0 // 0 = attendee
     };
 
-    // Signature Render server থেকে আনবে
+    // Zoom SDK init
+    ZoomMtg.setZoomJSLib("https://source.zoom.us/2.17.0/lib", "/av");
+    ZoomMtg.preLoadWasm();
+    ZoomMtg.prepareWebSDK();
+
+    // Signature Render server থেকে আনছে
     fetch("https://zoomwebsdkapp-qon0.onrender.com/signature", {
       method: "POST",
       body: JSON.stringify({
@@ -38,8 +47,11 @@
     })
       .then((res) => res.json())
       .then((response) => {
+        console.log("Signature:", response);
+
         ZoomMtg.init({
           leaveUrl: meetConfig.leaveUrl,
+          isSupportAV: true,
           success: () => {
             ZoomMtg.join({
               signature: response.signature,
@@ -48,18 +60,19 @@
               userName: meetConfig.userName,
               passWord: meetConfig.passWord,
               success: () => {
-                console.log("Join meeting success");
+                console.log("✅ Join meeting success");
               },
               error: (err) => {
-                console.error(err);
+                console.error("❌ Join error", err);
               }
             });
           },
           error: (err) => {
-            console.error(err);
+            console.error("❌ Init error", err);
           }
         });
-      });
+      })
+      .catch((err) => console.error("❌ Fetch signature error", err));
   </script>
 </body>
 </html>
