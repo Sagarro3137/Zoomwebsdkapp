@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Zoom Signature Test</title>
+</head>
+<body>
+  <h2>Test Zoom Signature API</h2>
+  <button onclick="getSignature()">Generate Signature</button>
+
+  <pre id="output"></pre>
+
+  <script>
+    async function getSignature() {
+      const res = await fetch("https://zoomwebsdkapp-qon0.onrender.com/signature", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          meetingNumber: "83620207149", // Meeting ID
+          role: 0                       // 0 = Attendee, 1 = Host
+        })
+      });
+
+      const data = await res.json();
+      document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
