@@ -1,78 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8">
   <title>Zoom Auto Join</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Zoom Web SDK CSS -->
-  <link type="text/css" rel="stylesheet" href="https://source.zoom.us/2.17.0/css/bootstrap.css" />
-  <link type="text/css" rel="stylesheet" href="https://source.zoom.us/2.17.0/css/react-select.css" />
-
-  <!-- Zoom Web SDK JS -->
   <script src="https://source.zoom.us/2.17.0/lib/vendor/react.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/react-dom.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/redux.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/redux-thunk.min.js"></script>
   <script src="https://source.zoom.us/2.17.0/lib/vendor/lodash.min.js"></script>
   <script src="https://source.zoom.us/zoom-meeting-2.17.0.min.js"></script>
+  <style>
+    body { text-align: center; font-family: Arial; margin-top: 50px; }
+  </style>
 </head>
 <body>
-  <h2 style="text-align:center; margin-top:50px;">Auto Joining Zoom Meeting...</h2>
+  <h2>Auto Joining Zoom Meeting...</h2>
 
   <script>
-    // Meeting Info
-    var meetConfig = {
-      apiKey: "RkocqUjSRhGLyDTbxwu0bQ", // তোমার Client ID
-      meetingNumber: "83620207149",
+    // Meeting Config
+    const meetConfig = {
+      apiKey: "RkocqUjSRhGLyDTbxwu0bQ",   // তোমার Client ID
+      meetingNumber: "83620207149",      // তোমার Meeting ID
       userName: "Auto User",
-      passWord: "Bdm2Hm",
+      passWord: "Bdm2Hm",                // তোমার Password
       leaveUrl: "https://zoom.us",
-      role: 0 // 0 = attendee
+      role: 0 // 0 = attendee, 1 = host
     };
 
-    // Zoom SDK init
-    ZoomMtg.setZoomJSLib("https://source.zoom.us/2.17.0/lib", "/av");
-    ZoomMtg.preLoadWasm();
-    ZoomMtg.prepareWebSDK();
-
-    // Signature Render server থেকে আনছে
+    // Signature আনতে হবে backend থেকে
     fetch("https://zoomwebsdkapp-qon0.onrender.com/signature", {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         meetingNumber: meetConfig.meetingNumber,
         role: meetConfig.role
-      }),
-      headers: { "Content-Type": "application/json" }
-    })
-      .then((res) => res.json())
-      .then((response) => {
-        console.log("Signature:", response);
-
-        ZoomMtg.init({
-          leaveUrl: meetConfig.leaveUrl,
-          isSupportAV: true,
-          success: () => {
-            ZoomMtg.join({
-              signature: response.signature,
-              sdkKey: meetConfig.apiKey,
-              meetingNumber: meetConfig.meetingNumber,
-              userName: meetConfig.userName,
-              passWord: meetConfig.passWord,
-              success: () => {
-                console.log("✅ Join meeting success");
-              },
-              error: (err) => {
-                console.error("❌ Join error", err);
-              }
-            });
-          },
-          error: (err) => {
-            console.error("❌ Init error", err);
-          }
-        });
       })
-      .catch((err) => console.error("❌ Fetch signature error", err));
+    })
+    .then(res => res.json())
+    .then(response => {
+      startMeeting(response.signature);
+    })
+    .catch(err => console.error("Signature error", err));
+
+    // Zoom Meeting Start
+    function startMeeting(signature) {
+      ZoomMtg.setZoomJSLib("https://source.zoom.us/2.17.0/lib", "/av");
+      ZoomMtg.preLoadWasm();
+      ZoomMtg.prepareJssdk();
+
+      ZoomMtg.init({
+        leaveUrl: meetConfig.leaveUrl,
+        success: function () {
+          ZoomMtg.join({
+            signature: signature,
+            sdkKey: meetConfig.apiKey,
+            meetingNumber: meetConfig.meetingNumber,
+            userName: meetConfig.userName,
+            passWord: meetConfig.passWord,
+            success: (res) => {
+              console.log("Join success", res);
+            },
+            error: (err) => {
+              console.error("Join error", err);
+            }
+          });
+        },
+        error: function (err) {
+          console.error("Init error", err);
+        }
+      });
+    }
   </script>
 </body>
 </html>
